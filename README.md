@@ -13,6 +13,10 @@ $ npm install --save termbox2
 
 ## Usage
 
+Currently the best source of "documentation" are the
+[type definitions](https://github.com/RauliL/termbox2-node/blob/main/index.d.ts)
+of the library.
+
 ```JavaScript
 const tb = require("termbox2");
 
