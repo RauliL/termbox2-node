@@ -277,6 +277,28 @@ func_print(const CallbackInfo& info)
   return info.Env().Undefined();
 }
 
+static Value
+func_get_input_mode(const CallbackInfo& info)
+{
+  return init_check_return(info, tb_set_input_mode(TB_INPUT_CURRENT));
+}
+
+static Value
+func_set_input_mode(const CallbackInfo& info)
+{
+  if (info.Length() < 1 || !info[0].IsNumber())
+  {
+    TypeError::New(
+      info.Env(),
+      "Number expected"
+    ).ThrowAsJavaScriptException();
+  }
+
+  tb_set_input_mode(info[0].As<Number>().Int32Value());
+
+  return info.Env().Undefined();
+}
+
 Object
 init(Env env, Object exports)
 {
@@ -284,6 +306,7 @@ init(Env env, Object exports)
   auto mod = Object::New(env);
   auto color = Object::New(env);
   auto eventType = Object::New(env);
+  auto inputMode = Object::New(env);
 
   exports.Set("init", Function::New(env, func_init));
   exports.Set("shutdown", Function::New(env, func_shutdown));
@@ -303,6 +326,9 @@ init(Env env, Object exports)
   exports.Set("pollEvent", Function::New(env, func_poll_event));
 
   exports.Set("print", Function::New(env, func_print));
+
+  exports.Set("getInputMode", Function::New(env, func_get_input_mode));
+  exports.Set("setInputMode", Function::New(env, func_set_input_mode));
 
   key.Set("CtrlTilde", Number::New(env, TB_KEY_CTRL_TILDE));
   key.Set("Ctrl2", Number::New(env, TB_KEY_CTRL_2));
@@ -407,10 +433,15 @@ init(Env env, Object exports)
   eventType.Set("Mouse", Number::New(env, TB_EVENT_MOUSE));
   eventType.Freeze();
 
+  inputMode.Set("Esc", Number::New(env, TB_INPUT_ESC));
+  inputMode.Set("Alt", Number::New(env, TB_INPUT_ALT));
+  inputMode.Set("Mouse", Number::New(env, TB_INPUT_MOUSE));
+
   exports.Set("Key", key);
   exports.Set("Mod", mod);
   exports.Set("Color", color);
   exports.Set("EventType", eventType);
+  exports.Set("InputMode", inputMode);
 
   return exports;
 }

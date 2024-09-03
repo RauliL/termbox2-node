@@ -106,16 +106,28 @@ declare module "termbox2" {
     Mouse: number;
   };
 
+  type InputModeMapping = {
+    Esc: number;
+    Alt: number;
+    Mouse: number;
+  };
+
+  type KeyCode = KeyMapping[keyof KeyMapping];
+  type KeyModifier = ModMapping[keyof ModMapping];
+  type Color = ColorMapping[keyof ColorMapping];
+  type EventType = EventTypeMapping[keyof EventTypeMapping];
+  type InputMode = InputModeMapping[keyof InputModeMapping];
+
   /**
    * An incoming event from the TTY.
    */
   export type Event = {
     /** Type of event, defined in `EventType` enumeration. */
-    type: EventTypeMapping[keyof EventTypeMapping];
+    type: EventType;
     /** Key modifier, defined in `Mod` enumeration. */
-    mod: ModMapping[keyof ModMapping];
+    mod: KeyModifier;
     /** Key code, defined in `Key` enumeration. */
-    key: KeyMapping[keyof KeyMapping];
+    key: KeyCode;
     /** Unicode codepoint. */
     ch: number;
     /** Resize width. */
@@ -133,6 +145,7 @@ declare module "termbox2" {
   export let Mod: Readonly<ModMapping>;
   export let Color: Readonly<ColorMapping>;
   export let EventType: Readonly<EventTypeMapping>;
+  export let InputMode: Readonly<InputModeMapping>;
 
   /**
    * Initializes the termbox library. This function should be called before
@@ -176,8 +189,8 @@ declare module "termbox2" {
     x: number,
     y: number,
     ch: number,
-    fg: ColorMapping[keyof ColorMapping],
-    bg: ColorMapping[keyof ColorMapping]
+    fg: Color,
+    bg: Color
   ): void;
 
   export function peekEvent(timeout: number): Event | undefined;
@@ -187,8 +200,35 @@ declare module "termbox2" {
   export function print(
     x: number,
     y: number,
-    fg: ColorMapping[keyof ColorMapping],
-    bg: ColorMapping[keyof ColorMapping],
+    fg: Color,
+    bg: Color,
     str: string
   ): void;
+
+  /**
+   * Returns the current input mode.
+   */
+  export function getInputMode(): InputMode;
+
+  /**
+   * Sets the input mode. Termbox has two input modes:
+   *
+   * 1. InputMode.Esc
+   *    When escape (\x1b) is in the buffer and there's no match for an escape
+   *    sequence, a key event for TB_KEY_ESC is returned.
+   *
+   * 2. InputMode.Alt
+   *    When escape (\x1b) is in the buffer and there's no match for an escape
+   *    sequence, the next keyboard event is returned with a Mod.Alt modifier.
+   *
+   * You can also apply InputMode.Mouse via bitwise OR operation to either of
+   * the modes (e.g., InputMode.Esc | InputMode.Mouse) to receive
+   * EventType.Mouse events. If none of the main two modes were set, but the
+   * mouse mode was, InputMode.Esc mode is used. If for some reason you've
+   * decided to use (InputMode.Esc | InputMode.Alt) combination, it will behave
+   * as if only InputMode.Esc was selected.
+   *
+   * The default input mode is InputMode.Esc.
+   */
+  export function setInputMode(mode: InputMode): void;
 }

@@ -42,4 +42,4 @@ tb.shutdown();
 
 ## TODO
 
-- Input and output mode handling.
+- Output mode handling.
