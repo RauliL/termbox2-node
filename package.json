@@ -1,0 +1,30 @@
+{
+  "name": "termbox2",
+  "version": "1.0.0",
+  "description": "Node.js bindings for termbox2",
+  "license": "MIT",
+  "author": "Rauli Laine <rauli.laine@iki.fi>",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "engines": {
+    "node": ">=10.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RauliL/termbox2-node"
+  },
+  "bugs": {
+    "url": "https://github.com/RauliL/termbox2-node/issues"
+  },
+  "gypfile": true,
+  "scripts": {
+    "build": "node-gyp rebuild",
+    "clean": "node-gyp clean"
+  },
+  "devDependencies": {
+    "node-gyp": "^10.2.0"
+  },
+  "dependencies": {
+    "node-addon-api": "^8.1.0"
+  }
+}
