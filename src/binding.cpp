@@ -179,6 +179,45 @@ func_set_cell(const CallbackInfo& info)
 }
 
 static Value
+create_key_event(const Env& env, const tb_event& e)
+{
+  const auto result = Object::New(env);
+
+  result.Set("type", String::New(env, "Key"));
+  result.Set("mod", Number::New(env, e.mod));
+  if (e.key != 0) {
+    result.Set("key", Number::New(env, e.key));
+  }
+  result.Set("ch", Number::New(env, e.ch));
+
+  return result;
+}
+
+static Value
+create_mouse_event(const Env& env, const tb_event& e)
+{
+  const auto result = Object::New(env);
+
+  result.Set("type", String::New(env, "Mouse"));
+  result.Set("x", Number::New(env, e.x));
+  result.Set("y", Number::New(env, e.y));
+
+  return result;
+}
+
+static Value
+create_resize_event(const Env& env, const tb_event& e)
+{
+  const auto result = Object::New(env);
+
+  result.Set("type", String::New(env, "Resize"));
+  result.Set("width", Number::New(env, e.w));
+  result.Set("height", Number::New(env, e.h));
+
+  return result;
+}
+
+static Value
 handle_event(const CallbackInfo& info, bool peek)
 {
   const auto& env = info.Env();
@@ -210,18 +249,21 @@ handle_event(const CallbackInfo& info, bool peek)
     }
     else if (result == TB_OK)
     {
-      const auto event = Object::New(env);
+      switch (e.type)
+      {
+        case TB_EVENT_KEY:
+          return create_key_event(env, e);
 
-      event.Set("type", Number::New(env, e.type));
-      event.Set("mod", Number::New(env, e.mod));
-      event.Set("key", Number::New(env, e.key));
-      event.Set("ch", Number::New(env, e.ch));
-      event.Set("w", Number::New(env, e.w));
-      event.Set("h", Number::New(env, e.h));
-      event.Set("x", Number::New(env, e.y));
-      event.Set("y", Number::New(env, e.x));
+        case TB_EVENT_MOUSE:
+          return create_mouse_event(env, e);
 
-      return event;
+        case TB_EVENT_RESIZE:
+          return create_resize_event(env, e);
+      }
+      Error::New(
+        env,
+        "Unrecognized terminal event"
+      ).ThrowAsJavaScriptException();
     } else {
       Error::New(env, tb_strerror(result)).ThrowAsJavaScriptException();
     }
@@ -305,7 +347,6 @@ init(Env env, Object exports)
   auto key = Object::New(env);
   auto mod = Object::New(env);
   auto color = Object::New(env);
-  auto eventType = Object::New(env);
   auto inputMode = Object::New(env);
 
   exports.Set("init", Function::New(env, func_init));
@@ -428,11 +469,6 @@ init(Env env, Object exports)
   color.Set("Blink", Number::New(env, TB_BLINK));
   color.Freeze();
 
-  eventType.Set("Key", Number::New(env, TB_EVENT_KEY));
-  eventType.Set("Resize", Number::New(env, TB_EVENT_RESIZE));
-  eventType.Set("Mouse", Number::New(env, TB_EVENT_MOUSE));
-  eventType.Freeze();
-
   inputMode.Set("Esc", Number::New(env, TB_INPUT_ESC));
   inputMode.Set("Alt", Number::New(env, TB_INPUT_ALT));
   inputMode.Set("Mouse", Number::New(env, TB_INPUT_MOUSE));
@@ -440,7 +476,6 @@ init(Env env, Object exports)
   exports.Set("Key", key);
   exports.Set("Mod", mod);
   exports.Set("Color", color);
-  exports.Set("EventType", eventType);
   exports.Set("InputMode", inputMode);
 
   return exports;

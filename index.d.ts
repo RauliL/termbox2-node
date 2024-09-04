@@ -100,51 +100,65 @@ declare module "termbox2" {
     Blink: number;
   };
 
-  type EventTypeMapping = {
-    Key: number;
-    Resize: number;
-    Mouse: number;
-  };
-
   type InputModeMapping = {
     Esc: number;
     Alt: number;
     Mouse: number;
   };
 
-  type KeyCode = KeyMapping[keyof KeyMapping];
+  type Key = KeyMapping[keyof KeyMapping];
   type KeyModifier = ModMapping[keyof ModMapping];
   type Color = ColorMapping[keyof ColorMapping];
-  type EventType = EventTypeMapping[keyof EventTypeMapping];
+  export type EventType = "Key" | "Mouse" | "Resize";
   type InputMode = InputModeMapping[keyof InputModeMapping];
 
   /**
    * An incoming event from the TTY.
    */
   export type Event = {
-    /** Type of event, defined in `EventType` enumeration. */
+    /** Type of the event. */
     type: EventType;
-    /** Key modifier, defined in `Mod` enumeration. */
+  };
+
+  /**
+   * An incoming keyboard event from the TTY.
+   */
+  export type KeyEvent = Event & {
+    type: "Key";
+    /** Key modifier, defined in Mod enumeration. */
     mod: KeyModifier;
-    /** Key code, defined in `Key` enumeration. */
-    key: KeyCode;
-    /** Unicode codepoint. */
+    /** One of the Key constants. */
+    key?: Key;
+    /** Unicode code point. */
     ch: number;
-    /** Resize width. */
-    w: number;
-    /** Resize height. */
-    h: number;
-    /** Mouse X coordinates. */
+  };
+
+  /**
+   * An incoming mouse event from the TTY.
+   */
+  export type MouseEvent = Event & {
+    type: "Mouse";
+    /** X coordinates where the user clicked. */
     x: number;
-    /** Mouse Y coordinates. */
+    /** Y coordinates where the user clicked. */
     y: number;
+  };
+
+  /**
+   * An incoming resize event from the TTY.
+   */
+  export type ResizeEvent = Event & {
+    type: "Resize";
+    /** New width of the terminal. */
+    width: number;
+    /** New height of the terminal. */
+    height: number;
   };
 
   // Enumerations.
   export let Key: Readonly<KeyMapping>;
   export let Mod: Readonly<ModMapping>;
   export let Color: Readonly<ColorMapping>;
-  export let EventType: Readonly<EventTypeMapping>;
   export let InputMode: Readonly<InputModeMapping>;
 
   /**
