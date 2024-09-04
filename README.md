@@ -42,4 +42,4 @@ tb.shutdown();
 
 ## TODO
 
-- Output mode handling.
+- True color output mode.

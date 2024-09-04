@@ -98,6 +98,7 @@ declare module "termbox2" {
     Reverse: number;
     Italic: number;
     Blink: number;
+    HiBlack: number;
   };
 
   type InputModeMapping = {
@@ -106,11 +107,19 @@ declare module "termbox2" {
     Mouse: number;
   };
 
+  type OutputModeMapping = {
+    Normal: number;
+    "256": number;
+    "216": number;
+    Grayscale: number;
+  };
+
   type Key = KeyMapping[keyof KeyMapping];
   type KeyModifier = ModMapping[keyof ModMapping];
   type Color = ColorMapping[keyof ColorMapping];
   export type EventType = "Key" | "Mouse" | "Resize";
   type InputMode = InputModeMapping[keyof InputModeMapping];
+  type OutputMode = OutputModeMapping[keyof OutputModeMapping];
 
   /**
    * An incoming event from the TTY.
@@ -160,6 +169,7 @@ declare module "termbox2" {
   export let Mod: Readonly<ModMapping>;
   export let Color: Readonly<ColorMapping>;
   export let InputMode: Readonly<InputModeMapping>;
+  export let OutputMode: Readonly<OutputModeMapping>;
 
   /**
    * Initializes the termbox library. This function should be called before
@@ -245,4 +255,79 @@ declare module "termbox2" {
    * The default input mode is InputMode.Esc.
    */
   export function setInputMode(mode: InputMode): void;
+
+  /**
+   * Returns the current output mode.
+   */
+  export function getOutputMode(): OutputMode;
+
+  /**
+   * Sets the termbox output mode. Termbox has multiple output modes:
+   *
+   * 1. OutputMode.Normal     => [0..8]
+   *
+   *    This mode provides 8 different colors:
+   *    Color.Black, Color.Red, Color.Green, Color.Yellow,
+   *    Color.Blue, Color.Magenta, Color.Cyan, Color.White
+   *
+   *    Plus Color.Default which skips sending a color code (i.e., uses the
+   *    terminal's default color).
+   *
+   *    Colors (including Color.Default) may be bitwise OR'd with attributes:
+   *    Color.Bold, Color.Underline, Color.Reverse, Color.Italic, Color.Blink,
+   *    Color.Bright, Color.Dim
+   *
+   *    As in all modes, the value 0 is interpreted as Color.Default for
+   *    convenience.
+   *
+   *    Some notes: Color.Reverse can be applied as either fg or bg attributes
+   *    for the same effect. Color.Bright can be applied to either fg or bg.
+   *    The rest of the attributes apply to fg only and are ignored as bg
+   *    attributes.
+   *
+   *    Example usage:
+   *      setCell(x, y, '@'.charCodeAt(0), Color.Black | Color.Bold, Color.Red);
+   *
+   * 2. OutputMode['256']        => [0..255] + Color.HiBlack
+   *
+   *    In this mode you get 256 distinct colors (plus default):
+   *                0x00   (1): Color.Default
+   *         Color.Black   (1): Color.Black in OutputMode.Normal
+   *          0x01..0x07   (7): the next 7 colors as in OutputMode.Normal
+   *          0x08..0x0f   (8): bright versions of the above
+   *          0x10..0xe7 (216): 216 different colors
+   *          0xe8..0xff  (24): 24 different shades of gray
+   *
+   *    All Color.* style attributes except Color.Bright may be bitwise OR'd
+   *    as in OutputMode.Normal.
+   *
+   *    Note Color.HiBlack must be used for black, as 0x00 represents default.
+   *
+   * 3. OutputMode['216']        => [0..216]
+   *
+   *    This mode supports the 216-color range of OutputMode['256'] only, but
+   *    you don't need to provide an offset:
+   *                0x00   (1): Color.Default
+   *          0x01..0xd8 (216): 216 different colors
+   *
+   * 4. OutputMode.Grayscale     => [0..24]
+   *
+   *    This mode supports the 24-color range of OutputMode['256'] only, but
+   *    you don't need to provide an offset:
+   *                0x00   (1): Color.Default
+   *          0x01..0x18  (24): 24 different shades of gray
+   *
+   * The default output mode is OutputMode.Normal.
+   *
+   * To use the terminal default color (i.e., to not send an escape code), pass
+   * Color.Default. For convenience, the value 0 is interpreted as
+   * Color.Default in all modes.
+   *
+   * Note, not all terminals support all output modes, especially beyond
+   * OutputMode.Normal. There is also no very reliable way to determine color
+   * support dynamically. If portability is desired, callers are recommended to
+   * use OutputMode.Normal or make output mode end-user configurable. The same
+   * advice applies to style attributes.
+   */
+  export function setOutputMode(mode: OutputMode): void;
 }

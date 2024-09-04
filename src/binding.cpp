@@ -341,6 +341,28 @@ func_set_input_mode(const CallbackInfo& info)
   return info.Env().Undefined();
 }
 
+static Value
+func_get_output_mode(const CallbackInfo& info)
+{
+  return init_check_return(info, tb_set_output_mode(TB_OUTPUT_CURRENT));
+}
+
+static Value
+func_set_output_mode(const CallbackInfo& info)
+{
+  if (info.Length() < 1 || !info[0].IsNumber())
+  {
+    TypeError::New(
+      info.Env(),
+      "Number expected"
+    ).ThrowAsJavaScriptException();
+  }
+
+  tb_set_output_mode(info[0].As<Number>().Int32Value());
+
+  return info.Env().Undefined();
+}
+
 Object
 init(Env env, Object exports)
 {
@@ -348,6 +370,7 @@ init(Env env, Object exports)
   auto mod = Object::New(env);
   auto color = Object::New(env);
   auto inputMode = Object::New(env);
+  auto outputMode = Object::New(env);
 
   exports.Set("init", Function::New(env, func_init));
   exports.Set("shutdown", Function::New(env, func_shutdown));
@@ -370,6 +393,9 @@ init(Env env, Object exports)
 
   exports.Set("getInputMode", Function::New(env, func_get_input_mode));
   exports.Set("setInputMode", Function::New(env, func_set_input_mode));
+
+  exports.Set("getOutputMode", Function::New(env, func_get_output_mode));
+  exports.Set("setOutputMode", Function::New(env, func_set_output_mode));
 
   key.Set("CtrlTilde", Number::New(env, TB_KEY_CTRL_TILDE));
   key.Set("Ctrl2", Number::New(env, TB_KEY_CTRL_2));
@@ -467,16 +493,25 @@ init(Env env, Object exports)
   color.Set("Reverse", Number::New(env, TB_REVERSE));
   color.Set("Italic", Number::New(env, TB_ITALIC));
   color.Set("Blink", Number::New(env, TB_BLINK));
+  color.Set("HiBlack", Number::New(env, TB_HI_BLACK));
   color.Freeze();
 
   inputMode.Set("Esc", Number::New(env, TB_INPUT_ESC));
   inputMode.Set("Alt", Number::New(env, TB_INPUT_ALT));
   inputMode.Set("Mouse", Number::New(env, TB_INPUT_MOUSE));
+  inputMode.Freeze();
+
+  outputMode.Set("Normal", Number::New(env, TB_OUTPUT_NORMAL));
+  outputMode.Set("256", Number::New(env, TB_OUTPUT_256));
+  outputMode.Set("216", Number::New(env, TB_OUTPUT_216));
+  outputMode.Set("Grayscale", Number::New(env, TB_OUTPUT_GRAYSCALE));
+  outputMode.Freeze();
 
   exports.Set("Key", key);
   exports.Set("Mod", mod);
   exports.Set("Color", color);
   exports.Set("InputMode", inputMode);
+  exports.Set("OutputMode", outputMode);
 
   return exports;
 }
